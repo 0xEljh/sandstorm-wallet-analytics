@@ -84,8 +84,8 @@ function parseData(data: { [key: string]: any }[], account: string) {
 
 export default function Profile() {
   const [account, setAccount] = useState<string>(
-    "47D9nuQT4K8uEGMRa8YiCwnjm1v4D4BZyoRvATUgKc3w"
-    // "Fbm1VcB3RmKAVh61wK7QRHs1pRc43LK9B3wBCtHCUCUf"
+    // "47D9nuQT4K8uEGMRa8YiCwnjm1v4D4BZyoRvATUgKc3w"
+    "Fbm1VcB3RmKAVh61wK7QRHs1pRc43LK9B3wBCtHCUCUf"
     // "94zDxSsYYgntjYrfL7s1Rok2Hamt11edZwZmXSjSL672"
   );
 
@@ -101,6 +101,7 @@ export default function Profile() {
   const date = new Date();
   date.setMonth(date.getMonth() - 3);
 
+  // will need to redact api key
   const url =
     "https://api.helius.xyz/v1/nft-events?api-key=adc13357-3e3a-478d-8d8b-352c617b9a71";
 
@@ -277,7 +278,7 @@ export default function Profile() {
                 <StatLabel>Holding</StatLabel>
                 <StatNumber>
                   {
-                    nftData.filter((datum) => datum.transactionCount % 2 === 0)
+                    nftData.filter((datum) => datum.transactionCount % 2 === 1)
                       .length
                   }
                 </StatNumber>
