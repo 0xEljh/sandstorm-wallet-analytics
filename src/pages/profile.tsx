@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 import { Flex, Stack, Heading, Text, Box } from "@chakra-ui/react";
+import { Input, InputGroup, InputLeftElement, Button } from "@chakra-ui/react";
 import {
   Accordion,
   AccordionItem,
@@ -20,6 +21,9 @@ import {
   StatHelpText,
   StatArrow,
 } from "@chakra-ui/react";
+
+import { FaSearch } from "react-icons/fa";
+import { Icon } from "@chakra-ui/react";
 
 import { unixTimeToDateString, unixTimeToDate } from "../utils/timeConversion";
 
@@ -85,8 +89,9 @@ function parseData(data: { [key: string]: any }[], account: string) {
 export default function Profile() {
   const [account, setAccount] = useState<string>(
     // "47D9nuQT4K8uEGMRa8YiCwnjm1v4D4BZyoRvATUgKc3w"
-    "Fbm1VcB3RmKAVh61wK7QRHs1pRc43LK9B3wBCtHCUCUf"
+    // "Fbm1VcB3RmKAVh61wK7QRHs1pRc43LK9B3wBCtHCUCUf"
     // "94zDxSsYYgntjYrfL7s1Rok2Hamt11edZwZmXSjSL672"
+    ""
   );
 
   const [rawData, setRawData] = useState<{ [key: string]: any }[]>([]);
@@ -133,259 +138,200 @@ export default function Profile() {
     setNftData(nftData);
   }, [rawData, account]);
 
+  function handleAccountChange(e: any) {
+    if (e.target.value.length < 32) return;
+    setAccount(e.target.value);
+  }
+
   return (
-    <Flex>
-      <Stack>
-        <Heading>Profile: {account}</Heading>
+    <Flex direction="column">
+      <Heading>Profile</Heading>
+      <InputGroup>
+        <InputLeftElement
+          pointerEvents="none"
+          children={<Icon as={FaSearch} color="gray.300" />}
+        />
+        <Input
+          type="text"
+          placeholder="Enter Solana Address"
+          onChange={handleAccountChange}
+        />
+      </InputGroup>
 
-        <Stack direction="row" py={8}>
-          {nftData && (
-            <>
-              <ScatterChart
-                data={nftData.filter(
-                  (x) =>
-                    x.sellTimestamp !== undefined &&
-                    x.transactionCount % 2 === 0
-                )}
-                x="sellTimestamp"
-                y="profit"
-              />
-            </>
-          )}
-        </Stack>
+      <Stack direction="row" py={8}>
+        {nftData && (
+          <>
+            <ScatterChart
+              data={nftData.filter(
+                (x) =>
+                  x.sellTimestamp !== undefined && x.transactionCount % 2 === 0
+              )}
+              x="sellTimestamp"
+              y="profit"
+            />
+          </>
+        )}
+      </Stack>
 
-        <Stack direction="row" py={8}>
-          {transactionData && (
-            <>
-              <Stat>
-                <StatLabel>Transaction Volume</StatLabel>
-                <StatNumber>
-                  {(transactionData.total / 1000000000).toFixed(2)}◎
-                </StatNumber>
-                {nftData && nftData.length > 0 && (
-                  // ts errors that data is possibly undefined but is already caught. optional chaining used to preven error
-                  <StatHelpText>
-                    From {unixTimeToDateString(nftData.at(0)?.buyTimestamp)}
-                  </StatHelpText>
-                )}
-              </Stat>
-              <Stat>
-                <StatLabel>Inflow Volume</StatLabel>
-                <StatNumber>
-                  {(transactionData.buy / 1000000000).toFixed(2)}◎
-                </StatNumber>
-              </Stat>
-              <Stat>
-                <StatLabel>Outflow Volume</StatLabel>
-                <StatNumber>
-                  {(transactionData.sell / 1000000000).toFixed(2)}◎
-                </StatNumber>
-              </Stat>
-              <Stat>
-                <StatLabel>NFTs transacted</StatLabel>
-                <StatNumber>{nftData.length}</StatNumber>
-              </Stat>
-            </>
-          )}
-        </Stack>
-        <Stack direction="row" py={8}>
-          {transactionData && (
-            <>
-              <Stat>
-                <StatLabel>Win Rate</StatLabel>
-                <StatNumber>
-                  {nftData?.filter((datum) => datum.profit > 0).length} :{" "}
-                  {nftData?.filter((datum) => datum.profit < 0).length}
-                </StatNumber>
-              </Stat>
-              <Stat>
-                <StatLabel>Total Profit</StatLabel>
-                <StatNumber>
-                  {(
-                    nftData
-                      .map((datum) => datum.profit)
-                      .reduce((prev, curr) => prev + curr, 0) / 1000000000
-                  ).toFixed(2)}
-                  ◎
-                </StatNumber>
-              </Stat>
+      <Stack direction="row" py={8}>
+        {transactionData && (
+          <>
+            <Stat>
+              <StatLabel>Transaction Volume</StatLabel>
+              <StatNumber>
+                {(transactionData.total / 1000000000).toFixed(2)}◎
+              </StatNumber>
+              {nftData && nftData.length > 0 && (
+                // ts errors that data is possibly undefined but is already caught. optional chaining used to preven error
+                <StatHelpText>
+                  From {unixTimeToDateString(nftData.at(0)?.buyTimestamp)}
+                </StatHelpText>
+              )}
+            </Stat>
+            <Stat>
+              <StatLabel>Inflow Volume</StatLabel>
+              <StatNumber>
+                {(transactionData.buy / 1000000000).toFixed(2)}◎
+              </StatNumber>
+            </Stat>
+            <Stat>
+              <StatLabel>Outflow Volume</StatLabel>
+              <StatNumber>
+                {(transactionData.sell / 1000000000).toFixed(2)}◎
+              </StatNumber>
+            </Stat>
+            <Stat>
+              <StatLabel>NFTs transacted</StatLabel>
+              <StatNumber>{nftData.length}</StatNumber>
+            </Stat>
+          </>
+        )}
+      </Stack>
+      <Stack direction="row" py={8}>
+        {transactionData && (
+          <>
+            <Stat>
+              <StatLabel>Win Rate</StatLabel>
+              <StatNumber>
+                {nftData?.filter((datum) => datum.profit > 0).length} :{" "}
+                {nftData?.filter((datum) => datum.profit < 0).length}
+              </StatNumber>
+            </Stat>
+            <Stat>
+              <StatLabel>Total Profit</StatLabel>
+              <StatNumber>
+                {(
+                  nftData
+                    .map((datum) => datum.profit)
+                    .reduce((prev, curr) => prev + curr, 0) / 1000000000
+                ).toFixed(2)}
+                ◎
+              </StatNumber>
+            </Stat>
 
-              <Stat>
-                <StatLabel>Biggest SOL Win</StatLabel>
-                {nftData.length > 0 && (
-                  <>
-                    <StatNumber>
-                      {
-                        nftData.reduce((prev, curr) =>
-                          prev.profit > curr.profit ? prev : curr
-                        ).name
-                      }
-                    </StatNumber>
+            <Stat>
+              <StatLabel>Biggest SOL Win</StatLabel>
+              {nftData.length > 0 && (
+                <>
+                  <StatNumber>
+                    {
+                      nftData.reduce((prev, curr) =>
+                        prev.profit > curr.profit ? prev : curr
+                      ).name
+                    }
+                  </StatNumber>
 
-                    <StatNumber>
-                      {(
-                        nftData.reduce((prev, curr) =>
-                          prev.profit > curr.profit ? prev : curr
-                        ).profit / 1000000000
-                      ).toFixed(2)}
-                      {""}◎
-                    </StatNumber>
-                    <StatArrow type="increase" />
-                  </>
-                )}
-              </Stat>
+                  <StatNumber>
+                    {(
+                      nftData.reduce((prev, curr) =>
+                        prev.profit > curr.profit ? prev : curr
+                      ).profit / 1000000000
+                    ).toFixed(2)}
+                    {""}◎
+                  </StatNumber>
+                  <StatArrow type="increase" />
+                </>
+              )}
+            </Stat>
 
-              <Stat>
-                <StatLabel>Biggest SOL Loss</StatLabel>
-                {nftData.length > 0 && (
-                  <>
-                    <StatNumber>
-                      {
-                        nftData.reduce((prev, curr) =>
-                          prev.profit < curr.profit ? prev : curr
-                        ).name
-                      }
-                    </StatNumber>
-                    <StatNumber>
-                      {(
-                        nftData.reduce((prev, curr) =>
-                          prev.profit < curr.profit ? prev : curr
-                        ).profit / 1000000000
-                      ).toFixed(2)}
-                      {""}◎
-                    </StatNumber>
-                    <StatArrow type="decrease" />
-                  </>
-                )}
-              </Stat>
-            </>
-          )}
-        </Stack>
+            <Stat>
+              <StatLabel>Biggest SOL Loss</StatLabel>
+              {nftData.length > 0 && (
+                <>
+                  <StatNumber>
+                    {
+                      nftData.reduce((prev, curr) =>
+                        prev.profit < curr.profit ? prev : curr
+                      ).name
+                    }
+                  </StatNumber>
+                  <StatNumber>
+                    {(
+                      nftData.reduce((prev, curr) =>
+                        prev.profit < curr.profit ? prev : curr
+                      ).profit / 1000000000
+                    ).toFixed(2)}
+                    {""}◎
+                  </StatNumber>
+                  <StatArrow type="decrease" />
+                </>
+              )}
+            </Stat>
+          </>
+        )}
+      </Stack>
 
-        <Stack direction="row" py={8}>
-          {transactionData && (
-            <>
-              <Stat>
-                <StatLabel>Flipped</StatLabel>
-                <StatNumber>
-                  {
-                    nftData.filter((datum) => datum.transactionCount % 2 === 0)
-                      .length
-                  }
-                </StatNumber>
-              </Stat>
-              <Stat>
-                <StatLabel>Holding</StatLabel>
-                <StatNumber>
-                  {
-                    nftData.filter((datum) => datum.transactionCount % 2 === 1)
-                      .length
-                  }
-                </StatNumber>
-              </Stat>
-              <Stat>
-                <StatLabel>Mints</StatLabel>
-                <StatNumber>
-                  {rawData.filter((datum) => datum.type === "NFT_MINT").length}
-                </StatNumber>
-              </Stat>
-              <Stat>
-                <StatLabel>Magic Eden Transactions</StatLabel>
-                <StatNumber>{transactionData.MAGIC_EDEN}</StatNumber>
-              </Stat>
-            </>
-          )}
-        </Stack>
+      <Stack direction="row" py={8}>
+        {transactionData && (
+          <>
+            <Stat>
+              <StatLabel>Flipped</StatLabel>
+              <StatNumber>
+                {
+                  nftData.filter((datum) => datum.transactionCount % 2 === 0)
+                    .length
+                }
+              </StatNumber>
+            </Stat>
+            <Stat>
+              <StatLabel>Holding</StatLabel>
+              <StatNumber>
+                {
+                  nftData.filter((datum) => datum.transactionCount % 2 === 1)
+                    .length
+                }
+              </StatNumber>
+            </Stat>
+            <Stat>
+              <StatLabel>Mints</StatLabel>
+              <StatNumber>
+                {rawData.filter((datum) => datum.type === "NFT_MINT").length}
+              </StatNumber>
+            </Stat>
+            <Stat>
+              <StatLabel>Magic Eden Transactions</StatLabel>
+              <StatNumber>{transactionData.MAGIC_EDEN}</StatNumber>
+            </Stat>
+          </>
+        )}
+      </Stack>
 
-        <Accordion allowToggle>
-          <AccordionItem>
-            <AccordionButton>
-              <Box flex="1" textAlign="left">
-                Current holds
-              </Box>
-              <AccordionIcon />
-            </AccordionButton>
-            <AccordionPanel pb={4}>
-              <DataTable headers={["Timestamp", "NFT", "Amount"]}>
-                {rawData
-                  .filter((item) => {
-                    const nfts = item.nfts as { [key: string]: any }[];
-                    return nfts.length === 1;
-                  })
-                  .map((item, index) => {
-                    // change item to object type
-                    const nfts = item.nfts as { [key: string]: any }[];
-                    return (
-                      <Tr key={index}>
-                        <Td>{unixTimeToDateString(item.timestamp)}</Td>
-                        <Td>
-                          <Text>
-                            {nfts
-                              .map((nft: any) => nft.name)
-                              .reduce(
-                                (prev: string, curr: string) =>
-                                  prev + ", " + curr
-                              )}
-                          </Text>
-                        </Td>
-                        <Td>{item.amount / 1000000000}◎</Td>
-                      </Tr>
-                    );
-                  })}
-              </DataTable>
-            </AccordionPanel>
-          </AccordionItem>
-          <AccordionItem>
-            <AccordionButton>
-              <Box flex="1" textAlign="left">
-                HODLs (held for more than 3 months)
-              </Box>
-              <AccordionIcon />
-            </AccordionButton>
-            <AccordionPanel pb={4}>
-              <DataTable headers={["Timestamp", "NFT", "Amount"]}>
-                {rawData
-                  .filter((item) => {
-                    const nfts = item.nfts as { [key: string]: any }[];
-                    return (
-                      nfts.length === 1 && unixTimeToDate(item.timestamp) < date
-                    );
-                  })
-                  .map((item, index) => {
-                    // change item to object type
-                    const nfts = item.nfts as { [key: string]: any }[];
-                    return (
-                      <Tr key={index}>
-                        <Td>{unixTimeToDateString(item.timestamp)}</Td>
-                        <Td>
-                          <Text>
-                            {nfts
-                              .map((nft: any) => nft.name)
-                              .reduce(
-                                (prev: string, curr: string) =>
-                                  prev + ", " + curr
-                              )}
-                          </Text>
-                        </Td>
-                        <Td>{item.amount / 1000000000}◎</Td>
-                      </Tr>
-                    );
-                  })}
-              </DataTable>
-            </AccordionPanel>
-          </AccordionItem>
-          <AccordionItem>
-            <AccordionButton>
-              <Box flex="1" textAlign="left">
-                Raw Data
-              </Box>
-              <AccordionIcon />
-            </AccordionButton>
-            <AccordionPanel pb={4}>
-              <DataTable
-                headers={["Timestamp", "NFT", "Amount", "Type", "Description"]}
-              >
-                {rawData.map((item, index) => {
+      <Accordion allowToggle>
+        <AccordionItem>
+          <AccordionButton>
+            <Box flex="1" textAlign="left">
+              Current holds
+            </Box>
+            <AccordionIcon />
+          </AccordionButton>
+          <AccordionPanel pb={4}>
+            <DataTable headers={["Timestamp", "NFT", "Amount"]}>
+              {rawData
+                .filter((item) => {
+                  const nfts = item.nfts as { [key: string]: any }[];
+                  return nfts.length === 1;
+                })
+                .map((item, index) => {
                   // change item to object type
                   const nfts = item.nfts as { [key: string]: any }[];
                   return (
@@ -394,25 +340,95 @@ export default function Profile() {
                       <Td>
                         <Text>
                           {nfts
-                            .map((nft: any, index) => nft.name)
+                            .map((nft: any) => nft.name)
                             .reduce(
                               (prev: string, curr: string) => prev + ", " + curr
                             )}
                         </Text>
                       </Td>
                       <Td>{item.amount / 1000000000}◎</Td>
-                      <Td>{item.type}</Td>
-                      <Td>
-                        <Text noOfLines={1}>{item.description}</Text>
-                      </Td>
                     </Tr>
                   );
                 })}
-              </DataTable>
-            </AccordionPanel>
-          </AccordionItem>
-        </Accordion>
-      </Stack>
+            </DataTable>
+          </AccordionPanel>
+        </AccordionItem>
+        <AccordionItem>
+          <AccordionButton>
+            <Box flex="1" textAlign="left">
+              HODLs (held for more than 3 months)
+            </Box>
+            <AccordionIcon />
+          </AccordionButton>
+          <AccordionPanel pb={4}>
+            <DataTable headers={["Timestamp", "NFT", "Amount"]}>
+              {rawData
+                .filter((item) => {
+                  const nfts = item.nfts as { [key: string]: any }[];
+                  return (
+                    nfts.length === 1 && unixTimeToDate(item.timestamp) < date
+                  );
+                })
+                .map((item, index) => {
+                  // change item to object type
+                  const nfts = item.nfts as { [key: string]: any }[];
+                  return (
+                    <Tr key={index}>
+                      <Td>{unixTimeToDateString(item.timestamp)}</Td>
+                      <Td>
+                        <Text>
+                          {nfts
+                            .map((nft: any) => nft.name)
+                            .reduce(
+                              (prev: string, curr: string) => prev + ", " + curr
+                            )}
+                        </Text>
+                      </Td>
+                      <Td>{item.amount / 1000000000}◎</Td>
+                    </Tr>
+                  );
+                })}
+            </DataTable>
+          </AccordionPanel>
+        </AccordionItem>
+        <AccordionItem>
+          <AccordionButton>
+            <Box flex="1" textAlign="left">
+              Raw Data
+            </Box>
+            <AccordionIcon />
+          </AccordionButton>
+          <AccordionPanel pb={4}>
+            <DataTable
+              headers={["Timestamp", "NFT", "Amount", "Type", "Description"]}
+            >
+              {rawData.map((item, index) => {
+                // change item to object type
+                const nfts = item.nfts as { [key: string]: any }[];
+                return (
+                  <Tr key={index}>
+                    <Td>{unixTimeToDateString(item.timestamp)}</Td>
+                    <Td>
+                      <Text>
+                        {nfts
+                          .map((nft: any, index) => nft.name)
+                          .reduce(
+                            (prev: string, curr: string) => prev + ", " + curr
+                          )}
+                      </Text>
+                    </Td>
+                    <Td>{item.amount / 1000000000}◎</Td>
+                    <Td>{item.type}</Td>
+                    <Td>
+                      <Text noOfLines={1}>{item.description}</Text>
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </DataTable>
+          </AccordionPanel>
+        </AccordionItem>
+      </Accordion>
     </Flex>
   );
 }
