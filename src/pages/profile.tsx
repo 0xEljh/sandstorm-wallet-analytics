@@ -369,6 +369,15 @@ export default function Profile() {
                     nfts.length === 1 && unixTimeToDate(item.timestamp) < date
                   );
                 })
+                .filter((item) => {
+                  const nfts = item.nfts as { [key: string]: any }[];
+                  return (
+                    nftData.filter((datum) => datum.name === nfts[0].name).at(0)
+                      ?.transactionCount %
+                      2 ===
+                    1
+                  );
+                })
                 .map((item, index) => {
                   // change item to object type
                   const nfts = item.nfts as { [key: string]: any }[];

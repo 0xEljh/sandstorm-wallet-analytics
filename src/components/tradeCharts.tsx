@@ -32,53 +32,47 @@ export function LineChart({ data, x, y, ...props }: chartProps) {
 }
 
 export function ScatterChart({ data, x, y, ...props }: chartProps) {
+  if (data.length === 0) {
+    return <div>no data</div>;
+  }
+
+  const maxY = data.reduce((prev, curr) => (prev[y] > curr[y] ? prev : curr))[
+    y
+  ];
+  const minY = data.reduce((prev, curr) => (prev[y] < curr[y] ? prev : curr))[
+    y
+  ];
+  const maxX = data.reduce((prev, curr) => (prev[x] > curr[x] ? prev : curr))[
+    x
+  ];
+  const minX = data.reduce((prev, curr) => (prev[x] < curr[x] ? prev : curr))[
+    x
+  ];
+
   return (
-    // set chart style such that positive bars are green and negative bars are red
-    <VictoryChart>
+    <VictoryChart domainPadding={{ x: 20, y: 20 }}>
       <VictoryAxis
         scale="time"
-        standalone={false}
-        domain={
-          data.length >= 1
-            ? [
-                data.reduce((prev, curr) => (prev[x] > curr[x] ? prev : curr))[
-                  x
-                ],
-                data.reduce((prev, curr) => (prev[x] < curr[x] ? prev : curr))[
-                  x
-                ],
-              ]
-            : [0, 0]
-        }
+        domain={[minX, maxX]}
         tickFormat={(x) => unixTimeToDateString(x)}
         orientation="bottom"
         offsetY={50}
         tickCount={4}
-        // flip the labels and translate downwards so they are readable
         style={{ tickLabels: { angle: 0, fontSize: 10 } }}
       />
       <VictoryAxis
         dependentAxis
+        crossAxis={false}
         tickFormat={(x) => x / 1000000000}
         style={{ tickLabels: { angle: 0, fontSize: 10 } }}
-        domain={
-          data.length >= 1
-            ? [
-                data.reduce((prev, curr) => (prev[y] > curr[y] ? prev : curr))[
-                  y
-                ],
-                data.reduce((prev, curr) => (prev[y] < curr[y] ? prev : curr))[
-                  y
-                ],
-              ]
-            : [0, 0]
-        }
+        domain={[minY, maxY]}
       />
       <VictoryScatter
         data={data}
-        x={x} // hacky way for now to get data evenly spaced
+        x={x}
         y={y}
         style={{
+          // profit is green, loss is red
           data: { fill: ({ datum }) => (datum[y] > 0 ? "green" : "red") },
         }}
         {...props}
