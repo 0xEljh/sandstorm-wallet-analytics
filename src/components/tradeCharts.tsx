@@ -59,7 +59,6 @@ export function ScatterChart({ data, x, y, ...props }: chartProps) {
   if (data.length === 0) {
     return <NoChart />;
   }
-
   const maxY = data.reduce((prev, curr) => (prev[y] > curr[y] ? prev : curr))[
     y
   ];

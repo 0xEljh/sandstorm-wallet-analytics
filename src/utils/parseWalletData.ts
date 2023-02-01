@@ -5,7 +5,7 @@ export default function parseWalletData(
   // iterate through data and parse it for metadata
   // metadata includes: source, transaction volume,
   const sourceCounts: { [key: string]: number } = {};
-  const transactionVolume = { buy: 0, sell: 0, total: 0 };
+  const transactionVolume = { inflow: 0, outflow: 0, total: 0, mintSpend: 0 };
 
   // gather also nft data:
   // it is possible for a user to repurchase an nft after selling...
@@ -29,16 +29,24 @@ export default function parseWalletData(
 
     // transactions are ordered from latest to earliest.
     // nft sell event occurs before buy event.
+
+    if (item.type === "NFT_MINT") {
+      transactionVolume.mintSpend += amount;
+      sourceCounts["mint"] = sourceCounts["mint"]
+        ? sourceCounts[source] + 1
+        : 1;
+    }
+
     if (item.buyer === account || item.type === "NFT_MINT") {
       // treat nft mint as a buy event for transaction purposes
-      transactionVolume.buy += amount;
+      transactionVolume.inflow += amount;
       // check if nft was sold -> if sold, find profit
       // else set profit to 0 since nft has not been sold yet
       nftBuyPrice[nftName] = amount;
       nftBuyTimestamps[nftName] = item.timestamp;
     } else {
       // sell transaction
-      transactionVolume.sell += amount;
+      transactionVolume.outflow += amount;
       nftSellPrice[nftName] = amount;
       nftSellTimestamps[nftName] = item.timestamp;
     }
@@ -61,5 +69,12 @@ export default function parseWalletData(
   });
   // if transaction count is odd, nft is still owned by user.
 
-  return { nftData, sourceCounts, transactionVolume };
+  const nftHodlData = nftData.filter(
+    (datum) =>
+      datum.transactionCount % 2 === 1 &&
+      ((datum.profit === 0 && datum.sellTimestamp === undefined) ||
+        datum.transactionCount > 2)
+  );
+
+  return { nftData, nftHodlData, sourceCounts, transactionVolume };
 }

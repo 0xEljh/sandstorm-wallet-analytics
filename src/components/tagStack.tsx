@@ -21,7 +21,7 @@ export default function TagStack({ tags, ...props }: TagStackProps) {
       {tags.includes("connoisseur") && <ConnoisseurTag />}
       {tags.includes("whale") && <WhaleTag />}
       {tags.includes("diamond_hands") && <DiamondHandsTag />}
-      {tags.includes("nftgod") && <NFTGODTag />}
+      {tags.includes("nft_god") && <NFTGODTag />}
     </Stack>
   );
 }

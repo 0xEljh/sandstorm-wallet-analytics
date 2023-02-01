@@ -27,6 +27,7 @@ import { Icon } from "@chakra-ui/react";
 
 import { unixTimeToDateString, unixTimeToDate } from "../utils/timeConversion";
 import parseWalletData from "../utils/parseWalletData";
+import { getWinLossData, getWalletTags } from "../utils/walletAnalytics";
 import { lampToSol } from "../utils/currencyConversion";
 import TagStack from "../components/tagStack";
 
@@ -55,8 +56,15 @@ export default function Profile() {
   }>({});
   const [nftData, setNftData] = useState<{ [key: string]: any }[]>([]);
   const [nftHodlData, setNftHodlData] = useState<{ [key: string]: any }[]>([]);
+  const [winLossData, setWinLossData] = useState<{ [key: string]: number }>({
+    wins: 0,
+    losses: 0,
+    profit: 0,
+    hodls: 0,
+  });
 
   // use date object to get date X months ago. X = 3, 6, 12
+  // todo: make this dynamic for user to select
   const date = new Date();
   date.setMonth(date.getMonth() - 3);
 
@@ -83,20 +91,12 @@ export default function Profile() {
   // perform analytics based on the data
   // e.g. favorite NFT. total purchase, total sales, etc.
   useEffect(() => {
-    const { nftData, transactionVolume, sourceCounts } = parseWalletData(
-      rawData,
-      account
-    );
+    const { nftData, nftHodlData, transactionVolume, sourceCounts } =
+      parseWalletData(rawData, account);
     setTransactionData({ ...transactionVolume, ...sourceCounts });
     setNftData(nftData);
-    setNftHodlData(
-      nftData.filter(
-        (datum) =>
-          datum.transactionCount % 2 === 1 &&
-          ((datum.profit === 0 && datum.sellTimestamp === undefined) ||
-            datum.transactionCount > 2)
-      )
-    );
+    setNftHodlData(nftHodlData);
+    setWinLossData(getWinLossData(nftData, nftHodlData));
   }, [rawData, account]);
 
   function handleAccountChange(e: any) {
@@ -120,14 +120,7 @@ export default function Profile() {
       </InputGroup>
 
       <TagStack
-        tags={[
-          "flipper",
-          "minter",
-          "whale",
-          "connoisseur",
-          "diamond_hands",
-          "nftgod",
-        ]}
+        tags={getWalletTags(nftData, nftHodlData, transactionData)}
         py={12}
       />
 
@@ -164,23 +157,24 @@ export default function Profile() {
             <Stat>
               <StatLabel>Inflow Volume</StatLabel>
               <StatNumber>
-                {lampToSol(transactionData.buy).toFixed(2)}◎
+                {lampToSol(transactionData.inflow).toFixed(2)}◎
               </StatNumber>
             </Stat>
             <Stat>
               <StatLabel>Outflow Volume</StatLabel>
               <StatNumber>
-                {lampToSol(transactionData.sell).toFixed(2)}◎
+                {lampToSol(transactionData.outflow).toFixed(2)}◎
               </StatNumber>
             </Stat>
             <Stat>
               <StatLabel>Net Volume</StatLabel>
               <StatNumber>
-                {lampToSol(transactionData.buy - transactionData.sell).toFixed(
-                  2
-                )}
+                {lampToSol(
+                  transactionData.inflow - transactionData.outflow
+                ).toFixed(2)}
                 ◎
               </StatNumber>
+              <StatHelpText>Total Sol Contributed to Ecosystem</StatHelpText>
             </Stat>
           </>
         )}
@@ -191,19 +185,13 @@ export default function Profile() {
             <Stat>
               <StatLabel>Win Rate</StatLabel>
               <StatNumber>
-                {nftData?.filter((datum) => datum.profit > 0).length} :{" "}
-                {nftData?.filter((datum) => datum.profit < 0).length}
+                {winLossData.wins} : {winLossData.losses}
               </StatNumber>
             </Stat>
             <Stat>
               <StatLabel>Total Profit</StatLabel>
               <StatNumber>
-                {lampToSol(
-                  nftData
-                    .map((datum) => datum.profit)
-                    .reduce((prev, curr) => prev + curr, 0)
-                ).toFixed(2)}
-                ◎
+                {lampToSol(winLossData.profit).toFixed(2)}◎
               </StatNumber>
             </Stat>
 
@@ -212,14 +200,6 @@ export default function Profile() {
               {nftData.length > 0 && (
                 <>
                   <StatNumber>
-                    {
-                      nftData.reduce((prev, curr) =>
-                        prev.profit > curr.profit ? prev : curr
-                      ).name
-                    }
-                  </StatNumber>
-
-                  <StatNumber>
                     {lampToSol(
                       nftData.reduce((prev, curr) =>
                         prev.profit > curr.profit ? prev : curr
@@ -227,7 +207,15 @@ export default function Profile() {
                     ).toFixed(2)}
                     {""}◎
                   </StatNumber>
-                  <StatArrow type="increase" />
+                  <StatHelpText>
+                    {
+                      nftData.reduce((prev, curr) =>
+                        prev.profit > curr.profit ? prev : curr
+                      ).name
+                    }
+                  </StatHelpText>
+
+                  {/* <StatArrow type="increase" /> */}
                 </>
               )}
             </Stat>
@@ -237,13 +225,6 @@ export default function Profile() {
               {nftData.length > 0 && (
                 <>
                   <StatNumber>
-                    {
-                      nftData.reduce((prev, curr) =>
-                        prev.profit < curr.profit ? prev : curr
-                      ).name
-                    }
-                  </StatNumber>
-                  <StatNumber>
                     {lampToSol(
                       nftData.reduce((prev, curr) =>
                         prev.profit < curr.profit ? prev : curr
@@ -251,7 +232,14 @@ export default function Profile() {
                     ).toFixed(2)}
                     {""}◎
                   </StatNumber>
-                  <StatArrow type="decrease" />
+                  <StatHelpText>
+                    {
+                      nftData.reduce((prev, curr) =>
+                        prev.profit < curr.profit ? prev : curr
+                      ).name
+                    }
+                  </StatHelpText>
+                  {/* <StatArrow type="decrease" /> */}
                 </>
               )}
             </Stat>
@@ -263,27 +251,20 @@ export default function Profile() {
         {transactionData && (
           <>
             <Stat>
-              <StatLabel>Flipped</StatLabel>
-              <StatNumber>
-                {
-                  nftData.filter((datum) => datum.transactionCount % 2 === 0)
-                    .length
-                }
-              </StatNumber>
+              <StatLabel>Flips</StatLabel>
+              <StatNumber>{winLossData.wins + winLossData.losses}</StatNumber>
             </Stat>
             <Stat>
-              <StatLabel>Holding</StatLabel>
-              <StatNumber>{nftHodlData.length}</StatNumber>
+              <StatLabel>HODLs</StatLabel>
+              <StatNumber>{winLossData.hodls}</StatNumber>
             </Stat>
             <Stat>
               <StatLabel>Mints</StatLabel>
-              <StatNumber>
-                {rawData.filter((datum) => datum.type === "NFT_MINT").length}
-              </StatNumber>
+              <StatNumber>{transactionData.mint ?? 0}</StatNumber>
             </Stat>
             <Stat>
               <StatLabel>Magic Eden Transactions</StatLabel>
-              <StatNumber>{transactionData.MAGIC_EDEN}</StatNumber>
+              <StatNumber>{transactionData.MAGIC_EDEN ?? 0}</StatNumber>
             </Stat>
           </>
         )}
