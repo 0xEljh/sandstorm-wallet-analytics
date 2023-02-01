@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 import { Flex, Stack, Heading, Text, Box } from "@chakra-ui/react";
-import { Input, InputGroup, InputLeftElement, Button } from "@chakra-ui/react";
+import { Input, InputGroup, InputLeftElement } from "@chakra-ui/react";
 import {
   Accordion,
   AccordionItem,
@@ -26,6 +26,7 @@ import { FaSearch } from "react-icons/fa";
 import { Icon } from "@chakra-ui/react";
 
 import { unixTimeToDateString, unixTimeToDate } from "../utils/timeConversion";
+import TagStack from "../components/tagStack";
 
 function parseData(data: { [key: string]: any }[], account: string) {
   // iterate through data and parse it for metadata
@@ -157,6 +158,18 @@ export default function Profile() {
           onChange={handleAccountChange}
         />
       </InputGroup>
+
+      <TagStack
+        tags={[
+          "flipper",
+          "minter",
+          "whale",
+          "connoisseur",
+          "diamond_hands",
+          "nftgod",
+        ]}
+        py={12}
+      />
 
       <Stack direction="row" py={8}>
         {nftData && (

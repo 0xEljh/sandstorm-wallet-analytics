@@ -5,6 +5,15 @@ import {
   VictoryScatter,
   VictoryAxis,
 } from "victory";
+import {
+  Spinner,
+  Box,
+  Stack,
+  Flex,
+  Heading,
+  Text,
+  Spacer,
+} from "@chakra-ui/react";
 import { unixTimeToDateString } from "../utils/timeConversion";
 // currently not obvious why this should be extracted out
 // into a component except for styling reasons.
@@ -14,6 +23,21 @@ interface chartProps {
   x: string;
   y: string;
   props?: any;
+}
+
+function NoChart() {
+  return (
+    <Stack
+      direction="column"
+      alignItems="center"
+      spacing={12}
+      minW="100vw" // for now to center elements.
+      py={24}
+    >
+      <Spinner />
+      <Heading size="md">No data to display yet.</Heading>
+    </Stack>
+  );
 }
 
 export function LineChart({ data, x, y, ...props }: chartProps) {
@@ -33,7 +57,7 @@ export function LineChart({ data, x, y, ...props }: chartProps) {
 
 export function ScatterChart({ data, x, y, ...props }: chartProps) {
   if (data.length === 0) {
-    return <div>no data</div>;
+    return <NoChart />;
   }
 
   const maxY = data.reduce((prev, curr) => (prev[y] > curr[y] ? prev : curr))[
