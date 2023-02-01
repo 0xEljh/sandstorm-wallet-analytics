@@ -1,7 +1,6 @@
 import { Tag, TagLabel, TagLeftIcon, TagRightIcon } from "@chakra-ui/react";
 import { FaChartLine, FaCoins, FaHammer, FaPalette } from "react-icons/fa";
-import { IoDiamondOutline } from "react-icons/io5";
-import { GiClown } from "react-icons/gi";
+import { GiClown, GiCutDiamond } from "react-icons/gi";
 
 interface TagWithIconProps {
   label: string;
@@ -11,7 +10,7 @@ interface TagWithIconProps {
 
 function TagWithIcon({ label, icon, ...props }: TagWithIconProps) {
   return (
-    <Tag {...props}>
+    <Tag {...props} size="lg">
       <TagLeftIcon as={icon} />
       <TagLabel>{label}</TagLabel>
     </Tag>
@@ -34,7 +33,7 @@ export function MinterTag() {
     <TagWithIcon
       label="Minter"
       icon={FaHammer}
-      colorScheme="orange"
+      colorScheme="yellow"
       variant="solid"
     />
   );
@@ -45,7 +44,7 @@ export function ConnoisseurTag() {
     <TagWithIcon
       label="Connoisseur"
       icon={FaPalette}
-      colorScheme="yellow"
+      colorScheme="teal"
       variant="solid"
     />
   );
@@ -65,9 +64,9 @@ export function WhaleTag() {
 export function DiamondHandsTag() {
   return (
     <TagWithIcon
-      label="DiamondHands"
-      icon={IoDiamondOutline}
-      colorScheme="green"
+      label="Diamond Hands"
+      icon={GiCutDiamond}
+      colorScheme="cyan"
       variant="solid"
     />
   );

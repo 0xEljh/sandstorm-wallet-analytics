@@ -13,7 +13,7 @@ import {
 import { Tr, Td } from "@chakra-ui/react";
 import DataTable from "../components/dataTable";
 
-import { ScatterChart, LineChart } from "../components/tradeCharts";
+import { ScatterChart } from "../components/tradeCharts";
 import {
   Stat,
   StatLabel,
@@ -26,65 +26,19 @@ import { FaSearch } from "react-icons/fa";
 import { Icon } from "@chakra-ui/react";
 
 import { unixTimeToDateString, unixTimeToDate } from "../utils/timeConversion";
+import parseWalletData from "../utils/parseWalletData";
+import { lampToSol } from "../utils/currencyConversion";
 import TagStack from "../components/tagStack";
 
-function parseData(data: { [key: string]: any }[], account: string) {
-  // iterate through data and parse it for metadata
-  // metadata includes: source, transaction volume,
-  const sourceCounts: { [key: string]: number } = {};
-  const transactionVolume = { buy: 0, sell: 0, total: 0 };
-
-  // gather also nft data:
-  // it is possible for a user to repurchase an nft after selling...
-  // for this scenario, have to count transaction number on the nft.
-  const nftTransactionCount: { [key: string]: number } = {};
-  const nftProfits: { [key: string]: number } = {};
-  const nftBuyTimestamps: { [key: string]: Date } = {};
-  const nftSellTimestamps: { [key: string]: Date } = {};
-
-  data.forEach((item) => {
-    const source = item.source as string;
-    const amount = item.amount;
-    const nftName = item.nfts[0].name;
-    sourceCounts[source] = sourceCounts[source] ? sourceCounts[source] + 1 : 1;
-    transactionVolume.total += amount;
-    nftTransactionCount[nftName] = nftTransactionCount[nftName]
-      ? nftTransactionCount[nftName] + 1
-      : 1;
-
-    // transactions are ordered from latest to earliest.
-    // nft sell event occurs before buy event.
-    if (item.buyer === account || item.type === "NFT_MINT") {
-      // treat nft mint as a buy event for transaction purposes
-      transactionVolume.buy += amount;
-      // check if nft was sold -> if sold, find profit
-      // else set profit to 0 since nft has not been sold yet
-      nftProfits[nftName] = nftProfits[nftName]
-        ? nftProfits[nftName] - amount
-        : 0;
-      nftBuyTimestamps[nftName] = item.timestamp;
-    } else {
-      // sell transaction
-      transactionVolume.sell += amount;
-      nftProfits[nftName] = amount;
-      // nftSellTimestamps[nftName] = unixTimeToDate(item.timestamp);
-      nftSellTimestamps[nftName] = item.timestamp;
-    }
-  });
-
-  // nft data into array of objects:
-  const nftData = Object.keys(nftTransactionCount).map((key) => {
-    return {
-      name: key,
-      transactionCount: nftTransactionCount[key],
-      profit: nftProfits[key],
-      buyTimestamp: nftBuyTimestamps[key],
-      sellTimestamp: nftSellTimestamps[key],
-    };
-  });
-  // if transaction count is odd, nft is still owned by user.
-
-  return { nftData, sourceCounts, transactionVolume };
+function DataRow({ data }: { data: { [key: string]: any } }) {
+  return (
+    <Tr>
+      <Td>{data.name}</Td>
+      {/* <Td>{data.symbol}</Td> */}
+      <Td>{lampToSol(data.buyPrice)}</Td>
+      <Td>{unixTimeToDateString(data.buyTimestamp)}</Td>
+    </Tr>
+  );
 }
 
 export default function Profile() {
@@ -100,18 +54,17 @@ export default function Profile() {
     [key: string]: any;
   }>({});
   const [nftData, setNftData] = useState<{ [key: string]: any }[]>([]);
-  // rename to "activeJournalEntryIndex" if using index to reference
-  const [activeJournalEntry, setActiveJournalEntry] = useState<number>(0);
+  const [nftHodlData, setNftHodlData] = useState<{ [key: string]: any }[]>([]);
 
   // use date object to get date X months ago. X = 3, 6, 12
   const date = new Date();
   date.setMonth(date.getMonth() - 3);
 
-  // will need to redact api key
-  const url =
-    "https://api.helius.xyz/v1/nft-events?api-key=adc13357-3e3a-478d-8d8b-352c617b9a71";
-
   useEffect(() => {
+    // get nft data from helius api
+    // will need to redact api key
+    const url =
+      "https://api.helius.xyz/v1/nft-events?api-key=adc13357-3e3a-478d-8d8b-352c617b9a71";
     axios
       .post(url, {
         query: {
@@ -123,7 +76,6 @@ export default function Profile() {
         if (res.status !== 200) {
           throw new Error("Failed to fetch data");
         }
-        console.log(res.data.result);
         setRawData(res.data.result);
       });
   }, [account]);
@@ -131,12 +83,20 @@ export default function Profile() {
   // perform analytics based on the data
   // e.g. favorite NFT. total purchase, total sales, etc.
   useEffect(() => {
-    const { nftData, transactionVolume, sourceCounts } = parseData(
+    const { nftData, transactionVolume, sourceCounts } = parseWalletData(
       rawData,
       account
     );
     setTransactionData({ ...transactionVolume, ...sourceCounts });
     setNftData(nftData);
+    setNftHodlData(
+      nftData.filter(
+        (datum) =>
+          datum.transactionCount % 2 === 1 &&
+          ((datum.profit === 0 && datum.sellTimestamp === undefined) ||
+            datum.transactionCount > 2)
+      )
+    );
   }, [rawData, account]);
 
   function handleAccountChange(e: any) {
@@ -192,7 +152,7 @@ export default function Profile() {
             <Stat>
               <StatLabel>Transaction Volume</StatLabel>
               <StatNumber>
-                {(transactionData.total / 1000000000).toFixed(2)}◎
+                {lampToSol(transactionData.total).toFixed(2)}◎
               </StatNumber>
               {nftData && nftData.length > 0 && (
                 // ts errors that data is possibly undefined but is already caught. optional chaining used to preven error
@@ -204,18 +164,23 @@ export default function Profile() {
             <Stat>
               <StatLabel>Inflow Volume</StatLabel>
               <StatNumber>
-                {(transactionData.buy / 1000000000).toFixed(2)}◎
+                {lampToSol(transactionData.buy).toFixed(2)}◎
               </StatNumber>
             </Stat>
             <Stat>
               <StatLabel>Outflow Volume</StatLabel>
               <StatNumber>
-                {(transactionData.sell / 1000000000).toFixed(2)}◎
+                {lampToSol(transactionData.sell).toFixed(2)}◎
               </StatNumber>
             </Stat>
             <Stat>
-              <StatLabel>NFTs transacted</StatLabel>
-              <StatNumber>{nftData.length}</StatNumber>
+              <StatLabel>Net Volume</StatLabel>
+              <StatNumber>
+                {lampToSol(transactionData.buy - transactionData.sell).toFixed(
+                  2
+                )}
+                ◎
+              </StatNumber>
             </Stat>
           </>
         )}
@@ -233,10 +198,10 @@ export default function Profile() {
             <Stat>
               <StatLabel>Total Profit</StatLabel>
               <StatNumber>
-                {(
+                {lampToSol(
                   nftData
                     .map((datum) => datum.profit)
-                    .reduce((prev, curr) => prev + curr, 0) / 1000000000
+                    .reduce((prev, curr) => prev + curr, 0)
                 ).toFixed(2)}
                 ◎
               </StatNumber>
@@ -255,10 +220,10 @@ export default function Profile() {
                   </StatNumber>
 
                   <StatNumber>
-                    {(
+                    {lampToSol(
                       nftData.reduce((prev, curr) =>
                         prev.profit > curr.profit ? prev : curr
-                      ).profit / 1000000000
+                      ).profit
                     ).toFixed(2)}
                     {""}◎
                   </StatNumber>
@@ -279,10 +244,10 @@ export default function Profile() {
                     }
                   </StatNumber>
                   <StatNumber>
-                    {(
+                    {lampToSol(
                       nftData.reduce((prev, curr) =>
                         prev.profit < curr.profit ? prev : curr
-                      ).profit / 1000000000
+                      ).profit
                     ).toFixed(2)}
                     {""}◎
                   </StatNumber>
@@ -308,12 +273,7 @@ export default function Profile() {
             </Stat>
             <Stat>
               <StatLabel>Holding</StatLabel>
-              <StatNumber>
-                {
-                  nftData.filter((datum) => datum.transactionCount % 2 === 1)
-                    .length
-                }
-              </StatNumber>
+              <StatNumber>{nftHodlData.length}</StatNumber>
             </Stat>
             <Stat>
               <StatLabel>Mints</StatLabel>
@@ -338,31 +298,10 @@ export default function Profile() {
             <AccordionIcon />
           </AccordionButton>
           <AccordionPanel pb={4}>
-            <DataTable headers={["Timestamp", "NFT", "Amount"]}>
-              {rawData
-                .filter((item) => {
-                  const nfts = item.nfts as { [key: string]: any }[];
-                  return nfts.length === 1;
-                })
-                .map((item, index) => {
-                  // change item to object type
-                  const nfts = item.nfts as { [key: string]: any }[];
-                  return (
-                    <Tr key={index}>
-                      <Td>{unixTimeToDateString(item.timestamp)}</Td>
-                      <Td>
-                        <Text>
-                          {nfts
-                            .map((nft: any) => nft.name)
-                            .reduce(
-                              (prev: string, curr: string) => prev + ", " + curr
-                            )}
-                        </Text>
-                      </Td>
-                      <Td>{item.amount / 1000000000}◎</Td>
-                    </Tr>
-                  );
-                })}
+            <DataTable headers={["NFT", "Purchase Price", "Purchase Date"]}>
+              {nftHodlData.map((item, index) => {
+                return <DataRow data={item} />;
+              })}
             </DataTable>
           </AccordionPanel>
         </AccordionItem>
@@ -374,41 +313,11 @@ export default function Profile() {
             <AccordionIcon />
           </AccordionButton>
           <AccordionPanel pb={4}>
-            <DataTable headers={["Timestamp", "NFT", "Amount"]}>
-              {rawData
-                .filter((item) => {
-                  const nfts = item.nfts as { [key: string]: any }[];
-                  return (
-                    nfts.length === 1 && unixTimeToDate(item.timestamp) < date
-                  );
-                })
-                .filter((item) => {
-                  const nfts = item.nfts as { [key: string]: any }[];
-                  return (
-                    nftData.filter((datum) => datum.name === nfts[0].name).at(0)
-                      ?.transactionCount %
-                      2 ===
-                    1
-                  );
-                })
+            <DataTable headers={["NFT", "Purchase Price", "Purchase Date"]}>
+              {nftHodlData
+                .filter((datum) => unixTimeToDate(datum.buyTimestamp) < date)
                 .map((item, index) => {
-                  // change item to object type
-                  const nfts = item.nfts as { [key: string]: any }[];
-                  return (
-                    <Tr key={index}>
-                      <Td>{unixTimeToDateString(item.timestamp)}</Td>
-                      <Td>
-                        <Text>
-                          {nfts
-                            .map((nft: any) => nft.name)
-                            .reduce(
-                              (prev: string, curr: string) => prev + ", " + curr
-                            )}
-                        </Text>
-                      </Td>
-                      <Td>{item.amount / 1000000000}◎</Td>
-                    </Tr>
-                  );
+                  return <DataRow data={item} />;
                 })}
             </DataTable>
           </AccordionPanel>
@@ -425,7 +334,6 @@ export default function Profile() {
               headers={["Timestamp", "NFT", "Amount", "Type", "Description"]}
             >
               {rawData.map((item, index) => {
-                // change item to object type
                 const nfts = item.nfts as { [key: string]: any }[];
                 return (
                   <Tr key={index}>
