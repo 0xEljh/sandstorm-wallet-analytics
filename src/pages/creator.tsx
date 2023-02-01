@@ -13,10 +13,20 @@ import {
 import { MdDelete } from "react-icons/md";
 import { Tr, Td } from "@chakra-ui/react";
 import DataTable from "../components/dataTable";
+import TagStack from "../components/tagStack";
+
+import fetchWalletData from "../utils/fetchWalletData";
+import parseWalletData from "../utils/parseWalletData";
+import { getWalletTags } from "../utils/walletAnalytics";
 
 interface Address {
   address: string;
   status: string;
+  tags: string[];
+}
+
+function updateLocalStorage(addresses: Address[]) {
+  localStorage.setItem("addresses", JSON.stringify(addresses));
 }
 
 export default function Creator() {
@@ -31,8 +41,8 @@ export default function Creator() {
     }
   }, []);
   useEffect(() => {
-    localStorage.setItem("addresses", JSON.stringify(addresses));
-    console.log(localStorage);
+    if (addresses.length === 0) return;
+    updateLocalStorage(addresses);
   }, [addresses]);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,12 +77,30 @@ export default function Creator() {
       setHasAddressError(true);
       return;
     }
-    setAddresses([...addresses, { address: newAddress, status: "" }]);
-    setNewAddress("");
-    setHasAddressError(false);
+    // fetch tags for acccount here instead so it is not refetched
+    // every rerender.
+    fetchWalletData(newAddress).then((data) => {
+      const { nftData, nftHodlData, sourceCounts, transactionVolume } =
+        parseWalletData(data, newAddress);
+      const tags = getWalletTags(nftData, nftHodlData, {
+        ...sourceCounts,
+        ...transactionVolume,
+      });
+      setAddresses([
+        ...addresses,
+        { address: newAddress, status: "", tags: tags },
+      ]);
+      setNewAddress("");
+      setHasAddressError(false);
+    });
   };
 
   const handleDeleteAddress = (index: number) => {
+    if (addresses.length === 1) {
+      setAddresses([]);
+      updateLocalStorage([]); // allow empty array to be stored
+      return;
+    }
     setAddresses(addresses.filter((_, i) => i !== index));
   };
 
@@ -86,30 +114,32 @@ export default function Creator() {
     <Stack spacing={8}>
       <Heading>Whitelist</Heading>
       <DataTable headers={["Address", "Tags", "Status", "Modify"]}>
-        {addresses.map((address, index) => (
-          <Tr key={index}>
-            <Td>{address.address}</Td>
-            <Td> placeholder for tags... </Td>
-            <Td>
-              <Select
-                placeholder="Not Set"
-                value={address.status}
-                onChange={(e) => handleUpdateStatus(index, e.target.value)}
-              >
-                <option value="shortlisted">Shortlisted</option>
-                <option value="rejected">Rejected</option>
-                <option value="considering">Considering</option>
-              </Select>
-            </Td>
-            <Td>
-              <IconButton
-                onClick={() => handleDeleteAddress(index)}
-                aria-label="delete"
-                icon={<Icon as={MdDelete} />}
-              />
-            </Td>
-          </Tr>
-        ))}
+        {addresses.map((address, index) => {
+          return (
+            <Tr key={index}>
+              <Td>{address.address}</Td>
+              <Td> {<TagStack tags={address.tags} />} </Td>
+              <Td>
+                <Select
+                  placeholder="Not Set"
+                  value={address.status}
+                  onChange={(e) => handleUpdateStatus(index, e.target.value)}
+                >
+                  <option value="shortlisted">Shortlisted</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="considering">Considering</option>
+                </Select>
+              </Td>
+              <Td>
+                <IconButton
+                  onClick={() => handleDeleteAddress(index)}
+                  aria-label="delete"
+                  icon={<Icon as={MdDelete} />}
+                />
+              </Td>
+            </Tr>
+          );
+        })}
       </DataTable>
       <Button onClick={handleDownload}>Download List as CSV</Button>
       <Stack>

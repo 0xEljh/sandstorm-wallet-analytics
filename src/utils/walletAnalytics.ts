@@ -39,7 +39,8 @@ export function getWalletTags(
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   if (
     nftData.filter((datum) => unixTimeToDate(datum.buyTimestamp) > sixMonthsAgo)
-      .length === 0
+      .length === 0 &&
+    nftData.length > 0
   ) {
     tags.push("nft_god");
   }

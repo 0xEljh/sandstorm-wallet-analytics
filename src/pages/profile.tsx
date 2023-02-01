@@ -25,10 +25,12 @@ import {
 import { FaSearch } from "react-icons/fa";
 import { Icon } from "@chakra-ui/react";
 
+import fetchWalletData from "../utils/fetchWalletData";
 import { unixTimeToDateString, unixTimeToDate } from "../utils/timeConversion";
 import parseWalletData from "../utils/parseWalletData";
 import { getWinLossData, getWalletTags } from "../utils/walletAnalytics";
 import { lampToSol } from "../utils/currencyConversion";
+
 import TagStack from "../components/tagStack";
 
 function DataRow({ data }: { data: { [key: string]: any } }) {
@@ -71,21 +73,24 @@ export default function Profile() {
   useEffect(() => {
     // get nft data from helius api
     // will need to redact api key
-    const url =
-      "https://api.helius.xyz/v1/nft-events?api-key=adc13357-3e3a-478d-8d8b-352c617b9a71";
-    axios
-      .post(url, {
-        query: {
-          accounts: [account],
-          types: ["NFT_SALE", "NFT_MINT"],
-        },
-      })
-      .then((res) => {
-        if (res.status !== 200) {
-          throw new Error("Failed to fetch data");
-        }
-        setRawData(res.data.result);
-      });
+    // const url =
+    //   "https://api.helius.xyz/v1/nft-events?api-key=adc13357-3e3a-478d-8d8b-352c617b9a71";
+    // axios
+    //   .post(url, {
+    //     query: {
+    //       accounts: [account],
+    //       types: ["NFT_SALE", "NFT_MINT"],
+    //     },
+    //   })
+    //   .then((res) => {
+    //     if (res.status !== 200) {
+    //       throw new Error("Failed to fetch data");
+    //     }
+    //     setRawData(res.data.result);
+    //   });
+    fetchWalletData(account).then((res) => {
+      setRawData(res);
+    });
   }, [account]);
 
   // perform analytics based on the data
