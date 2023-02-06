@@ -17,12 +17,14 @@ import TagStack from "../components/tagStack";
 
 import fetchWalletData from "../utils/fetchWalletData";
 import parseWalletData from "../utils/parseWalletData";
-import { getWalletTags } from "../utils/walletAnalytics";
+import { getWalletTags, getWinLossData } from "../utils/walletAnalytics";
+import { lampToSol } from "../utils/currencyConversion";
 
 interface Address {
   address: string;
   status: string;
   tags: string[];
+  stats: { [key: string]: number };
 }
 
 function updateLocalStorage(addresses: Address[]) {
@@ -86,9 +88,15 @@ export default function Creator() {
         ...sourceCounts,
         ...transactionVolume,
       });
+
       setAddresses([
         ...addresses,
-        { address: newAddress, status: "", tags: tags },
+        {
+          address: newAddress,
+          status: "",
+          tags: tags,
+          stats: { ...transactionVolume },
+        },
       ]);
       setNewAddress("");
       setHasAddressError(false);
@@ -113,12 +121,22 @@ export default function Creator() {
   return (
     <Stack spacing={8}>
       <Heading>Whitelist</Heading>
-      <DataTable headers={["Address", "Tags", "Status", "Modify"]}>
+      <DataTable headers={["Address", "Tags", "Stats", "Status", "Modify"]}>
         {addresses.map((address, index) => {
           return (
             <Tr key={index}>
               <Td>{address.address}</Td>
               <Td> {<TagStack tags={address.tags} />} </Td>
+              <Td>
+                {" "}
+                {Object.entries(address.stats).map(([key, value], index) => {
+                  return (
+                    <Text key={index}>
+                      {key}: {lampToSol(value).toFixed(2)}◎
+                    </Text>
+                  );
+                })}
+              </Td>
               <Td>
                 <Select
                   placeholder="Not Set"
@@ -153,8 +171,12 @@ export default function Creator() {
           <Text color="red">Address must be at least 32 characters</Text>
         )}
         <Button onClick={handleAddAddress}>Add Address</Button>
+        <Text>or upload a list of addresses</Text>
         <Input type="file" onChange={handleUpload} />
       </Stack>
+      <Text color="gray.500">
+        Feedback? Let me know at elijahng96@gmail.com or 0xEljh on Twitter
+      </Text>
     </Stack>
   );
 }
