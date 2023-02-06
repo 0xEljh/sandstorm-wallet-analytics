@@ -1,6 +1,8 @@
-import { Flex, Stack, Heading, Text, Button } from "@chakra-ui/react";
+import { Flex, Stack, Heading, Text } from "@chakra-ui/react";
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
+
+import { CTAButton } from "../components/buttons";
 
 function TextCTAPanel({
   link,
@@ -14,7 +16,7 @@ function TextCTAPanel({
     <Flex direction="column" alignItems="center" minW={"100vw"}>
       <Text my={8}>{children}</Text>
       <Link to={link}>
-        <Button my={8}>Get Started</Button>
+        <CTAButton text="Get Started" />
       </Link>
     </Flex>
   );
@@ -23,10 +25,8 @@ function TextCTAPanel({
 export default function Home() {
   return (
     <Flex direction="column" alignItems="center">
-      <Heading my={12}>
-        The Ultimate Solana NFT Wallet Analytics Platform
-      </Heading>
-      <Text>
+      <Heading my={12}>The Wallet NFT Analytics Platform for Solana</Heading>
+      <Text color="brand.400" my={8}>
         We provide NFT traders, collectors, whitelist applicants and creators
         with the tools they need to track, analyze and make informed decisions.
       </Text>

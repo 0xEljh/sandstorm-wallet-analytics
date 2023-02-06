@@ -6,3 +6,13 @@ export function WalletButton({ ...props }: { [key: string]: any }) {
     <IconButton aria-label="wallet" icon={<Icon as={FaWallet} />} {...props} />
   );
 }
+
+export function CTAButton({
+  text,
+  ...props
+}: {
+  text: string;
+  [key: string]: any;
+}) {
+  return <Button {...props}>{text}</Button>;
+}
