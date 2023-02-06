@@ -34,7 +34,7 @@ function NoChart() {
       minW="100vw" // for now to center elements.
       py={24}
     >
-      <Spinner />
+      <Spinner color="brand.200" />
       <Heading size="md">No data to display yet.</Heading>
     </Stack>
   );

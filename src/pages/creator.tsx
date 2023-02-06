@@ -163,6 +163,7 @@ export default function Creator() {
       <Stack>
         <Heading size="lg">Add Address</Heading>
         <Input
+          type="text"
           placeholder="Address"
           value={newAddress}
           onChange={(e) => setNewAddress(e.target.value)}

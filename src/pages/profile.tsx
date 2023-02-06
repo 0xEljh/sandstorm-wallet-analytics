@@ -70,23 +70,6 @@ export default function Profile() {
   date.setMonth(date.getMonth() - 3);
 
   useEffect(() => {
-    // get nft data from helius api
-    // will need to redact api key
-    // const url =
-    //   "https://api.helius.xyz/v1/nft-events?api-key=adc13357-3e3a-478d-8d8b-352c617b9a71";
-    // axios
-    //   .post(url, {
-    //     query: {
-    //       accounts: [account],
-    //       types: ["NFT_SALE", "NFT_MINT"],
-    //     },
-    //   })
-    //   .then((res) => {
-    //     if (res.status !== 200) {
-    //       throw new Error("Failed to fetch data");
-    //     }
-    //     setRawData(res.data.result);
-    //   });
     fetchWalletData(account).then((res) => {
       setRawData(res);
     });
@@ -110,23 +93,25 @@ export default function Profile() {
 
   return (
     <Flex direction="column">
-      <Heading>Profile</Heading>
-      <InputGroup>
-        <InputLeftElement
-          pointerEvents="none"
-          children={<Icon as={FaSearch} color="gray.300" />}
-        />
-        <Input
-          type="text"
-          placeholder="Enter Solana Address"
-          onChange={handleAccountChange}
-        />
-      </InputGroup>
+      <Stack spacing={8} my={8} mx={12}>
+        <Heading>Profile</Heading>
+        <InputGroup my={8}>
+          <InputLeftElement
+            pointerEvents="none"
+            children={<Icon as={FaSearch} color="brand.200" />}
+          />
+          <Input
+            type="text"
+            placeholder="Enter Solana Address"
+            onChange={handleAccountChange}
+          />
+        </InputGroup>
 
-      <TagStack
-        tags={getWalletTags(nftData, nftHodlData, transactionData)}
-        py={12}
-      />
+        <TagStack
+          tags={getWalletTags(nftData, nftHodlData, transactionData)}
+          py={12}
+        />
+      </Stack>
 
       <Stack direction="row" py={8}>
         {nftData && (
@@ -143,138 +128,121 @@ export default function Profile() {
         )}
       </Stack>
 
-      <Stack direction="row" py={8}>
-        {transactionData && (
-          <>
-            <Stat>
-              <StatLabel>Transaction Volume</StatLabel>
-              <StatNumber>
-                {lampToSol(transactionData.total).toFixed(2)}◎
-              </StatNumber>
-              {nftData && nftData.length > 0 && (
-                // ts errors that data is possibly undefined but is already caught. optional chaining used to preven error
-                <StatHelpText>
-                  From {unixTimeToDateString(nftData.at(0)?.buyTimestamp)}
-                </StatHelpText>
-              )}
-            </Stat>
-            <Stat>
-              <StatLabel>Inflow Volume</StatLabel>
-              <StatNumber>
-                {lampToSol(transactionData.inflow).toFixed(2)}◎
-              </StatNumber>
-            </Stat>
-            <Stat>
-              <StatLabel>Outflow Volume</StatLabel>
-              <StatNumber>
-                {lampToSol(transactionData.outflow).toFixed(2)}◎
-              </StatNumber>
-            </Stat>
-            <Stat>
-              <StatLabel>Net Volume</StatLabel>
+      <Stack direction="row" py={8} mx={12}>
+        <Stat>
+          <StatLabel>Transaction Volume</StatLabel>
+          <StatNumber>
+            {lampToSol(transactionData.total).toFixed(2)}◎
+          </StatNumber>
+          {nftData && nftData.length > 0 && (
+            // ts errors that data is possibly undefined but is already caught. optional chaining used to preven error
+            <StatHelpText>
+              From {unixTimeToDateString(nftData.at(0)?.buyTimestamp)}
+            </StatHelpText>
+          )}
+        </Stat>
+        <Stat>
+          <StatLabel>Inflow Volume</StatLabel>
+          <StatNumber>
+            {lampToSol(transactionData.inflow).toFixed(2)}◎
+          </StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>Outflow Volume</StatLabel>
+          <StatNumber>
+            {lampToSol(transactionData.outflow).toFixed(2)}◎
+          </StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>Net Volume</StatLabel>
+          <StatNumber>
+            {lampToSol(
+              transactionData.inflow - transactionData.outflow
+            ).toFixed(2)}
+            ◎
+          </StatNumber>
+          <StatHelpText>Net Ecosystem Inflow</StatHelpText>
+        </Stat>
+      </Stack>
+      <Stack direction="row" py={8} mx={12}>
+        <Stat>
+          <StatLabel>Win Rate</StatLabel>
+          <StatNumber>
+            {winLossData.wins} : {winLossData.losses}
+          </StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>Total Profit</StatLabel>
+          <StatNumber>{lampToSol(winLossData.profit).toFixed(2)}◎</StatNumber>
+        </Stat>
+
+        <Stat>
+          <StatLabel>Biggest SOL Win</StatLabel>
+          {nftData.length > 0 && (
+            <>
               <StatNumber>
                 {lampToSol(
-                  transactionData.inflow - transactionData.outflow
+                  nftData.reduce((prev, curr) =>
+                    prev.profit > curr.profit ? prev : curr
+                  ).profit
                 ).toFixed(2)}
-                ◎
+                {""}◎
               </StatNumber>
-              <StatHelpText>Total Sol Contributed to Ecosystem</StatHelpText>
-            </Stat>
-          </>
-        )}
-      </Stack>
-      <Stack direction="row" py={8}>
-        {transactionData && (
-          <>
-            <Stat>
-              <StatLabel>Win Rate</StatLabel>
+              <StatHelpText>
+                {
+                  nftData.reduce((prev, curr) =>
+                    prev.profit > curr.profit ? prev : curr
+                  ).name
+                }
+              </StatHelpText>
+            </>
+          )}
+        </Stat>
+
+        <Stat>
+          <StatLabel>Biggest SOL Loss</StatLabel>
+          {nftData.length > 0 && (
+            <>
               <StatNumber>
-                {winLossData.wins} : {winLossData.losses}
+                {lampToSol(
+                  nftData.reduce((prev, curr) =>
+                    prev.profit < curr.profit ? prev : curr
+                  ).profit
+                ).toFixed(2)}
+                {""}◎
               </StatNumber>
-            </Stat>
-            <Stat>
-              <StatLabel>Total Profit</StatLabel>
-              <StatNumber>
-                {lampToSol(winLossData.profit).toFixed(2)}◎
-              </StatNumber>
-            </Stat>
-
-            <Stat>
-              <StatLabel>Biggest SOL Win</StatLabel>
-              {nftData.length > 0 && (
-                <>
-                  <StatNumber>
-                    {lampToSol(
-                      nftData.reduce((prev, curr) =>
-                        prev.profit > curr.profit ? prev : curr
-                      ).profit
-                    ).toFixed(2)}
-                    {""}◎
-                  </StatNumber>
-                  <StatHelpText>
-                    {
-                      nftData.reduce((prev, curr) =>
-                        prev.profit > curr.profit ? prev : curr
-                      ).name
-                    }
-                  </StatHelpText>
-
-                  {/* <StatArrow type="increase" /> */}
-                </>
-              )}
-            </Stat>
-
-            <Stat>
-              <StatLabel>Biggest SOL Loss</StatLabel>
-              {nftData.length > 0 && (
-                <>
-                  <StatNumber>
-                    {lampToSol(
-                      nftData.reduce((prev, curr) =>
-                        prev.profit < curr.profit ? prev : curr
-                      ).profit
-                    ).toFixed(2)}
-                    {""}◎
-                  </StatNumber>
-                  <StatHelpText>
-                    {
-                      nftData.reduce((prev, curr) =>
-                        prev.profit < curr.profit ? prev : curr
-                      ).name
-                    }
-                  </StatHelpText>
-                  {/* <StatArrow type="decrease" /> */}
-                </>
-              )}
-            </Stat>
-          </>
-        )}
+              <StatHelpText>
+                {
+                  nftData.reduce((prev, curr) =>
+                    prev.profit < curr.profit ? prev : curr
+                  ).name
+                }
+              </StatHelpText>
+            </>
+          )}
+        </Stat>
       </Stack>
 
-      <Stack direction="row" py={8}>
-        {transactionData && (
-          <>
-            <Stat>
-              <StatLabel>Flips</StatLabel>
-              <StatNumber>{winLossData.wins + winLossData.losses}</StatNumber>
-            </Stat>
-            <Stat>
-              <StatLabel>HODLs</StatLabel>
-              <StatNumber>{winLossData.hodls}</StatNumber>
-            </Stat>
-            <Stat>
-              <StatLabel>Mints</StatLabel>
-              <StatNumber>{transactionData.mint ?? 0}</StatNumber>
-            </Stat>
-            <Stat>
-              <StatLabel>Magic Eden Transactions</StatLabel>
-              <StatNumber>{transactionData.MAGIC_EDEN ?? 0}</StatNumber>
-            </Stat>
-          </>
-        )}
+      <Stack direction="row" py={8} mx={12}>
+        <Stat>
+          <StatLabel>Flips</StatLabel>
+          <StatNumber>{winLossData.wins + winLossData.losses}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>HODLs</StatLabel>
+          <StatNumber>{winLossData.hodls}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>Mints</StatLabel>
+          <StatNumber>{transactionData.mint ?? 0}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel>Magic Eden Transactions</StatLabel>
+          <StatNumber>{transactionData.MAGIC_EDEN ?? 0}</StatNumber>
+        </Stat>
       </Stack>
 
-      <Accordion allowToggle>
+      <Accordion allowToggle my={12} mx={12}>
         <AccordionItem>
           <AccordionButton>
             <Box flex="1" textAlign="left">

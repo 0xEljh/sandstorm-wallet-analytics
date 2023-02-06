@@ -1,4 +1,5 @@
 import { extendTheme } from "@chakra-ui/react";
+import { inputTheme } from "./inputTheme";
 
 export const theme = extendTheme({
   colors: {
@@ -21,5 +22,8 @@ export const theme = extendTheme({
         color: "teal.500",
       },
     },
+  },
+  components: {
+    Input: inputTheme,
   },
 });
