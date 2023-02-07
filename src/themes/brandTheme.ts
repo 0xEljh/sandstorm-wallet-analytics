@@ -1,5 +1,6 @@
 import { extendTheme } from "@chakra-ui/react";
 import { inputTheme } from "./inputTheme";
+import { tabsTheme } from "./tabTheme";
 
 export const theme = extendTheme({
   colors: {
@@ -25,5 +26,6 @@ export const theme = extendTheme({
   },
   components: {
     Input: inputTheme,
+    Tabs: tabsTheme,
   },
 });

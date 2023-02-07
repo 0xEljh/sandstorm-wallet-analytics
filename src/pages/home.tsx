@@ -14,7 +14,7 @@ function TextCTAPanel({
 }) {
   // button should link to /internal-link
   return (
-    <Flex direction="column" alignItems="center" minW={"100vw"}>
+    <Flex direction="column" alignItems="center" width="100%">
       <Text fontSize="lg" my={12} align="center" mx={4}>
         {children}
       </Text>
@@ -39,7 +39,7 @@ export default function Home() {
         <br />
         An app for NFT enjoyooors.
       </Text>
-      <Tabs my={8} isFitted variant="enclosed">
+      <Tabs my={8} pb={12} isFitted width={"90vw"}>
         <TabList>
           <Tab>Traders</Tab>
           <Tab>Collectors</Tab>
@@ -49,9 +49,9 @@ export default function Home() {
           <TabPanel>
             <TextCTAPanel link="/profile">
               View trading history and statistics. Track your performance and
-              identify patterns in trading behavior. Look up other traders and
-              see what they are holding or buying. Verify the performance of
-              Alpha Callers and spot LARPers.
+              identify patterns in trading behavior.
+              <br /> Look up other traders and see what they are holding or
+              buying. Verify the performance of Alpha Callers and spot LARPers.
             </TextCTAPanel>
           </TabPanel>
           <TabPanel>
@@ -64,8 +64,10 @@ export default function Home() {
           <TabPanel>
             <TextCTAPanel link="/creator">
               Curate a whitelist of applicants based on hard data and your
-              desired holder profile. Choose applicants that will be the most
-              valuable to your project and community.
+              desired holder profile.
+              <br />
+              Choose applicants that will be the most valuable to your project
+              and community.
             </TextCTAPanel>
           </TabPanel>
         </TabPanels>
