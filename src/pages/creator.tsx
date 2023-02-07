@@ -19,6 +19,7 @@ import fetchWalletData from "../utils/fetchWalletData";
 import parseWalletData from "../utils/parseWalletData";
 import { getWalletTags, getWinLossData } from "../utils/walletAnalytics";
 import { lampToSol } from "../utils/currencyConversion";
+import Footer from "../components/footer";
 
 interface Address {
   address: string;
@@ -119,65 +120,82 @@ export default function Creator() {
   };
 
   return (
-    <Stack spacing={8}>
-      <Heading>Whitelist</Heading>
-      <DataTable headers={["Address", "Tags", "Stats", "Status", "Modify"]}>
-        {addresses.map((address, index) => {
-          return (
-            <Tr key={index}>
-              <Td>{address.address}</Td>
-              <Td> {<TagStack tags={address.tags} />} </Td>
-              <Td>
-                {" "}
-                {Object.entries(address.stats).map(([key, value], index) => {
-                  return (
-                    <Text key={index}>
-                      {key}: {lampToSol(value).toFixed(2)}◎
-                    </Text>
-                  );
-                })}
-              </Td>
-              <Td>
-                <Select
-                  placeholder="Not Set"
-                  value={address.status}
-                  onChange={(e) => handleUpdateStatus(index, e.target.value)}
-                >
-                  <option value="shortlisted">Shortlisted</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="considering">Considering</option>
-                </Select>
-              </Td>
-              <Td>
-                <IconButton
-                  onClick={() => handleDeleteAddress(index)}
-                  aria-label="delete"
-                  icon={<Icon as={MdDelete} />}
-                />
-              </Td>
-            </Tr>
-          );
-        })}
-      </DataTable>
-      <Button onClick={handleDownload}>Download List as CSV</Button>
-      <Stack>
-        <Heading size="lg">Add Address</Heading>
-        <Input
-          type="text"
-          placeholder="Address"
-          value={newAddress}
-          onChange={(e) => setNewAddress(e.target.value)}
-        />
-        {hasAddressError && (
-          <Text color="red">Address must be at least 32 characters</Text>
-        )}
-        <Button onClick={handleAddAddress}>Add Address</Button>
-        <Text>or upload a list of addresses</Text>
-        <Input type="file" onChange={handleUpload} />
+    <>
+      <Stack spacing={8} mx={[4, 8, 12]}>
+        <Heading my={8}>Creator</Heading>
+        <Stack pl={4} my={12} spacing={8} minH={"40vh"}>
+          <Heading size="lg">List</Heading>
+          <DataTable headers={["Address", "Tags", "Stats", "Status", "Modify"]}>
+            {addresses.map((address, index) => {
+              return (
+                <Tr key={index}>
+                  <Td>{address.address}</Td>
+                  <Td> {<TagStack tags={address.tags} />} </Td>
+                  <Td>
+                    {" "}
+                    {Object.entries(address.stats).map(
+                      ([key, value], index) => {
+                        return (
+                          <Text key={index}>
+                            {key}: {lampToSol(value).toFixed(2)}◎
+                          </Text>
+                        );
+                      }
+                    )}
+                  </Td>
+                  <Td>
+                    <Select
+                      placeholder="Not Set"
+                      value={address.status}
+                      onChange={(e) =>
+                        handleUpdateStatus(index, e.target.value)
+                      }
+                    >
+                      <option value="shortlisted">Shortlisted</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="considering">Considering</option>
+                    </Select>
+                  </Td>
+                  <Td>
+                    <IconButton
+                      onClick={() => handleDeleteAddress(index)}
+                      aria-label="delete"
+                      icon={<Icon as={MdDelete} />}
+                    />
+                  </Td>
+                </Tr>
+              );
+            })}
+          </DataTable>
+
+          {addresses.length === 0 ? (
+            <Text>Add an address to populate the list</Text>
+          ) : (
+            <Button onClick={handleDownload}>Download List as CSV</Button>
+          )}
+        </Stack>
+
+        <Stack my={12} spacing={8} pl={4}>
+          <Heading size="lg">Add</Heading>
+          <Stack>
+            <Input
+              type="text"
+              placeholder="Address"
+              value={newAddress}
+              onChange={(e) => setNewAddress(e.target.value)}
+            />
+            {hasAddressError && (
+              <Text color="red">Address must be at least 32 characters</Text>
+            )}
+            <Button onClick={handleAddAddress}>Add Address</Button>
+          </Stack>
+          <Stack>
+            <Text>or upload a list of addresses</Text>
+            <Input type="file" onChange={handleUpload} />
+          </Stack>
+        </Stack>
       </Stack>
-      <Text color="gray.500">
-        Feedback? Let me know at elijahng96@gmail.com or 0xEljh on Twitter
-      </Text>
-    </Stack>
+      <Footer />
+    </>
   );
 }

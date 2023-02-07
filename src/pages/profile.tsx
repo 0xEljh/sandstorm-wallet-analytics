@@ -13,13 +13,7 @@ import { Tr, Td } from "@chakra-ui/react";
 import DataTable from "../components/dataTable";
 
 import { ScatterChart } from "../components/tradeCharts";
-import {
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  StatArrow,
-} from "@chakra-ui/react";
+import { Stat, StatLabel, StatNumber, StatHelpText } from "@chakra-ui/react";
 
 import { FaSearch } from "react-icons/fa";
 import { Icon } from "@chakra-ui/react";
@@ -31,6 +25,7 @@ import { getWinLossData, getWalletTags } from "../utils/walletAnalytics";
 import { lampToSol } from "../utils/currencyConversion";
 
 import TagStack from "../components/tagStack";
+import Footer from "../components/footer";
 
 function DataRow({ data }: { data: { [key: string]: any } }) {
   return (
@@ -93,7 +88,7 @@ export default function Profile() {
 
   return (
     <Flex direction="column">
-      <Stack spacing={8} my={8} mx={12}>
+      <Stack spacing={8} my={8} mx={[4, 8, 12]}>
         <Heading>Profile</Heading>
         <InputGroup my={8}>
           <InputLeftElement
@@ -128,7 +123,7 @@ export default function Profile() {
         )}
       </Stack>
 
-      <Stack direction="row" py={8} mx={12}>
+      <Stack direction="row" py={8} mx={[4, 8, 12]}>
         <Stat>
           <StatLabel>Transaction Volume</StatLabel>
           <StatNumber>
@@ -164,7 +159,7 @@ export default function Profile() {
           <StatHelpText>Net Ecosystem Inflow</StatHelpText>
         </Stat>
       </Stack>
-      <Stack direction="row" py={8} mx={12}>
+      <Stack direction="row" py={8} mx={[4, 8, 12]}>
         <Stat>
           <StatLabel>Win Rate</StatLabel>
           <StatNumber>
@@ -223,7 +218,7 @@ export default function Profile() {
         </Stat>
       </Stack>
 
-      <Stack direction="row" py={8} mx={12}>
+      <Stack direction="row" py={8} mx={[4, 8, 12]}>
         <Stat>
           <StatLabel>Flips</StatLabel>
           <StatNumber>{winLossData.wins + winLossData.losses}</StatNumber>
@@ -242,7 +237,7 @@ export default function Profile() {
         </Stat>
       </Stack>
 
-      <Accordion allowToggle my={12} mx={12}>
+      <Accordion allowToggle my={24} mx={[4, 8, 12]}>
         <AccordionItem>
           <AccordionButton>
             <Box flex="1" textAlign="left">
@@ -312,6 +307,7 @@ export default function Profile() {
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
+      <Footer />
     </Flex>
   );
 }
