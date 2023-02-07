@@ -35,3 +35,12 @@ Currently, the application does not handle multiple wallets or NFT AMM transacti
 Contributions are welcome! Please feel free to open an issue or pull request. If you'd like to contribute in other ways or offer feedback, reach out to me via Discord (0xEljh#0898) or Twitter (@0xEljh). You may also email me at elijahng96@gmail.com
 
 Finally, my SOL/ETH address is 0xeljh.sol or 0xeljh.eth if you'd like to send me a tip! (such domains/addresses are not currently supported by the app hopefully I'll get there soon!)
+
+## License
+
+This project is licensed under GNU General Public License v3.0. See LICENSE for more details.
+
+## Acknowledgements
+
+- (https://helius.xyz/)[Helius] and their easy-to-use (https://docs.helius.xyz/solana-apis/nft-api)[Solana NFT API]. Currently on free-tier for dev purposes.
+
