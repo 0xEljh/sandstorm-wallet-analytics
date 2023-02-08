@@ -2,7 +2,8 @@ import axios from "axios";
 
 export default async function fetchWalletData(address: string) {
   const url =
-    "https://api.helius.xyz/v1/nft-events?api-key=adc13357-3e3a-478d-8d8b-352c617b9a71";
+    "https://api.helius.xyz/v1/nft-events?api-key=" +
+    process.env.REACT_APP_HELIUS_API_KEY;
   return await axios
     .post(url, {
       query: {

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Flex, Heading, Text } from "@chakra-ui/react";
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
@@ -5,11 +6,15 @@ import { Link } from "react-router-dom";
 import { CTAButton } from "../components/buttons";
 import Footer from "../components/footer";
 
+import { logPageView, logClick } from "../utils/logging";
+
 function TextCTAPanel({
   link,
+  title,
   children,
 }: {
   link: string;
+  title: string;
   children: React.ReactNode;
 }) {
   // button should link to /internal-link
@@ -19,13 +24,22 @@ function TextCTAPanel({
         {children}
       </Text>
       <Link to={link}>
-        <CTAButton size="lg" text="Launch App" my={12} />
+        <CTAButton
+          size="lg"
+          text="Launch App"
+          my={12}
+          onClick={() => logClick(title)}
+        />
       </Link>
     </Flex>
   );
 }
 
 export default function Home() {
+  useEffect(() => {
+    logPageView("home");
+  }, []);
+
   return (
     <Flex direction="column" alignItems="center">
       {/* @ts-ignore-next align is a prop on Heading but not recognised*/}
@@ -47,7 +61,7 @@ export default function Home() {
         </TabList>
         <TabPanels>
           <TabPanel>
-            <TextCTAPanel link="/profile">
+            <TextCTAPanel link="/profile" title="traders">
               View trading history and statistics. Track your performance and
               identify patterns in trading behavior.
               <br /> Look up other traders and see what they are holding or
@@ -55,14 +69,14 @@ export default function Home() {
             </TextCTAPanel>
           </TabPanel>
           <TabPanel>
-            <TextCTAPanel link="/profile">
+            <TextCTAPanel link="/profile" title="collectors">
               View your hodls, collection value, and performance. Showcase your
               ability to curate, mint, and collect NFTs. Make your case to NFT
               projects when applying for whitelists.
             </TextCTAPanel>
           </TabPanel>
           <TabPanel>
-            <TextCTAPanel link="/creator">
+            <TextCTAPanel link="/creator" title="creators">
               Curate a whitelist of applicants based on hard data and your
               desired holder profile.
               <br />

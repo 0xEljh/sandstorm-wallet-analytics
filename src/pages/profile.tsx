@@ -23,6 +23,7 @@ import { unixTimeToDateString, unixTimeToDate } from "../utils/timeConversion";
 import parseWalletData from "../utils/parseWalletData";
 import { getWinLossData, getWalletTags } from "../utils/walletAnalytics";
 import { lampToSol } from "../utils/currencyConversion";
+import { logPageView, logClick, logSearch } from "../utils/logging";
 
 import TagStack from "../components/tagStack";
 import Footer from "../components/footer";
@@ -42,7 +43,6 @@ export default function Profile() {
   const [account, setAccount] = useState<string>(
     // "47D9nuQT4K8uEGMRa8YiCwnjm1v4D4BZyoRvATUgKc3w"
     // "Fbm1VcB3RmKAVh61wK7QRHs1pRc43LK9B3wBCtHCUCUf"
-    // "94zDxSsYYgntjYrfL7s1Rok2Hamt11edZwZmXSjSL672"
     ""
   );
 
@@ -65,6 +65,10 @@ export default function Profile() {
   date.setMonth(date.getMonth() - 3);
 
   useEffect(() => {
+    logPageView("profile");
+  }, []);
+
+  useEffect(() => {
     fetchWalletData(account).then((res) => {
       setRawData(res);
     });
@@ -84,6 +88,7 @@ export default function Profile() {
   function handleAccountChange(e: any) {
     if (e.target.value.length < 32) return;
     setAccount(e.target.value);
+    logSearch(e.target.value);
   }
 
   return (

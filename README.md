@@ -16,6 +16,23 @@ A working demo of the application can be found at https://nftanalytics.dev/
 
 Currently, the application does not handle multiple wallets or NFT AMM transactions (like tensor) so well but these are planned features.
 
+### Dependencies/Setup
+
+This project requires the (https://docs.helius.xyz/solana-apis/nft-api)[Helius NFT API key] to be run. It also requires Firebase for logging purposes (and in the future, as the backend). Hence a firebase project and configuration is required.
+
+Place all keys in a .env file in the root directory of the project. The .env file should look like this:
+    
+    ```
+    REACT_APP_HELIUS_API_KEY=""
+
+    REACT_APP_FIREBASE_API_KEY=""
+    REACT_APP_FIREBASE_AUTH_DOMAIN=""
+    REACT_APP_FIREBASE_PROJECT_ID=""
+    REACT_APP_FIREBASE_STORAGE_BUCKET=""
+    REACT_APP_FIREBASE_MESSAGING_SENDER_ID=""
+    REACT_APP_FIREBASE_APP_ID = ""
+    ```
+
 ## Features
 
 - [x] Wallet NFT trading Win Rate Statistics and Profit

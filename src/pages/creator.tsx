@@ -14,12 +14,13 @@ import { MdDelete } from "react-icons/md";
 import { Tr, Td } from "@chakra-ui/react";
 import DataTable from "../components/dataTable";
 import TagStack from "../components/tagStack";
+import Footer from "../components/footer";
 
 import fetchWalletData from "../utils/fetchWalletData";
 import parseWalletData from "../utils/parseWalletData";
 import { getWalletTags, getWinLossData } from "../utils/walletAnalytics";
 import { lampToSol } from "../utils/currencyConversion";
-import Footer from "../components/footer";
+import { logPageView, logClick } from "../utils/logging";
 
 interface Address {
   address: string;
@@ -42,7 +43,9 @@ export default function Creator() {
     if (storedAddresses) {
       setAddresses(JSON.parse(storedAddresses));
     }
+    logPageView("creator");
   }, []);
+
   useEffect(() => {
     if (addresses.length === 0) return;
     updateLocalStorage(addresses);
@@ -52,17 +55,29 @@ export default function Creator() {
     const file = e.target.files![0];
     const reader = new FileReader();
     reader.readAsText(file);
+    logClick("file-upload");
     reader.onload = (event) => {
       if (event.target === null) return;
-
       const lines = (event.target as any).result.split("\n");
-      const newAddresses = lines.map((line: string) => ({
-        address: line,
-        status: "",
-      }));
+
+      const newAddresses = lines.map(async (line: string) => {
+        const { nftData, nftHodlData, sourceCounts, transactionVolume } =
+          parseWalletData(await fetchWalletData(line), line);
+        const tags = getWalletTags(nftData, nftHodlData, {
+          ...sourceCounts,
+          ...transactionVolume,
+        });
+        return {
+          address: line,
+          status: "",
+          tags: tags,
+          stats: { ...transactionVolume },
+        };
+      });
       setAddresses([...addresses, ...newAddresses]);
     };
   };
+
   const handleDownload = () => {
     const csv = addresses
       .map((address) => `${address.address},${address.status}`)
@@ -72,6 +87,7 @@ export default function Creator() {
     const link = document.createElement("a");
     link.href = url;
     link.download = "whitelist.csv";
+    logClick("file-download");
     link.click();
   };
 
@@ -102,6 +118,7 @@ export default function Creator() {
       setNewAddress("");
       setHasAddressError(false);
     });
+    logClick("add-address");
   };
 
   const handleDeleteAddress = (index: number) => {
@@ -111,12 +128,14 @@ export default function Creator() {
       return;
     }
     setAddresses(addresses.filter((_, i) => i !== index));
+    logClick("delete-address");
   };
 
   const handleUpdateStatus = (index: number, status: string) => {
     const updatedAddresses = [...addresses];
     updatedAddresses[index].status = status;
     setAddresses(updatedAddresses);
+    logClick("update-status");
   };
 
   return (
