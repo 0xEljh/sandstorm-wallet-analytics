@@ -1,22 +1,15 @@
 import {
   VictoryChart,
   VictoryLine,
-  VictoryBar,
   VictoryScatter,
   VictoryAxis,
   VictoryLabel,
+  VictoryVoronoiContainer,
 } from "victory";
-import {
-  Spinner,
-  Box,
-  Stack,
-  Flex,
-  Heading,
-  Text,
-  Spacer,
-} from "@chakra-ui/react";
+import { Spinner, Stack, Heading } from "@chakra-ui/react";
 import { useToken } from "@chakra-ui/react";
 import { unixTimeToDateString } from "../utils/timeConversion";
+import { lampToSol } from "../utils/currencyConversion";
 // currently not obvious why this should be extracted out
 // into a component except for styling reasons.
 
@@ -87,6 +80,31 @@ export function ScatterChart({ data, x, y, ...props }: chartProps) {
       domainPadding={{ x: 20, y: 20 }}
       // padding={{ top: 50, bottom: 50, left: 50, right: 50 }}
       // height={300}
+      containerComponent={
+        <VictoryVoronoiContainer
+          labels={(datum) => {
+            const priceChangeText =
+              lampToSol(datum.datum["buyPrice"]) +
+              "→" +
+              lampToSol(datum.datum["sellPrice"]) +
+              "◎";
+            if (datum.datum["name"] === "") {
+              // return ["Unnamed NFT", priceChangeText];
+              return "Unnamed NFT\n" + priceChangeText;
+            }
+            // return [datum.datum["name"], priceChangeText];
+            return datum.datum["name"] + "\n" + priceChangeText;
+          }}
+          labelComponent={
+            <VictoryLabel
+              textAnchor="start"
+              verticalAnchor="end"
+              style={{ fontSize: 8, fill: brand200 }}
+              dy={-10}
+            />
+          }
+        />
+      }
     >
       <VictoryAxis
         scale="time"
@@ -108,61 +126,21 @@ export function ScatterChart({ data, x, y, ...props }: chartProps) {
         label="Profit in ◎"
         domain={[minY, maxY]}
       />
+
       <VictoryScatter
         data={data}
-        labels={(datum) => {
-          return datum.datum["name"];
-        }}
-        labelComponent={<VictoryLabel />}
         x={x}
         y={y}
         style={{
-          // profit is green, loss is red
           parent: { border: "1px solid #ccc" },
-          labels: { fill: "none" },
+          // profit is green, loss is red
           data: {
             fill: ({ datum }) => (datum[y] > 0 ? brand100 : brand300),
             fillOpacity: 0.6,
             stroke: ({ datum }) => (datum[y] > 0 ? brand100 : brand300),
-            strokeWidth: 1,
+            strokeWidth: 1.5,
           },
         }}
-        events={[
-          {
-            target: "data",
-            eventHandlers: {
-              onMouseOver: () => {
-                return [
-                  {
-                    target: "labels",
-                    mutation: (props) => {
-                      return {
-                        style: Object.assign({}, props.style, {
-                          fill: brand200,
-                          fontSize: 8,
-                          backgroundStyle: { fill: "black", fillOpacity: 0.5 },
-                          backgroundPadding: 10,
-                        }),
-                      };
-                    },
-                  },
-                ];
-              },
-              onMouseOut: () => {
-                return [
-                  {
-                    target: "labels",
-                    mutation: (props) => {
-                      return {
-                        style: Object.assign({}, props.style, { fill: "none" }),
-                      };
-                    },
-                  },
-                ];
-              },
-            },
-          },
-        ]}
         {...props}
       />
     </VictoryChart>
