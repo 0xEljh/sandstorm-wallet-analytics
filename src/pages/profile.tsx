@@ -107,26 +107,20 @@ export default function Profile() {
           />
         </InputGroup>
 
-        <TagStack
-          tags={getWalletTags(nftData, nftHodlData, transactionData)}
-          py={12}
-        />
+        <TagStack tags={getWalletTags(nftData, nftHodlData, transactionData)} />
       </Stack>
-
-      <Stack direction="row" py={8}>
-        {nftData && (
-          <>
-            <ScatterChart
-              data={nftData.filter(
-                (x) =>
-                  x.sellTimestamp !== undefined && x.transactionCount % 2 === 0
-              )}
-              x="sellTimestamp"
-              y="profit"
-            />
-          </>
-        )}
-      </Stack>
+      {nftData && (
+        <Box maxW={["100%", "100%", "80vw"]} ml={[0, 0, "10vw"]}>
+          <ScatterChart
+            data={nftData.filter(
+              (x) =>
+                x.sellTimestamp !== undefined && x.transactionCount % 2 === 0
+            )}
+            x="sellTimestamp"
+            y="profit"
+          />
+        </Box>
+      )}
 
       <Stack direction="row" py={8} mx={[4, 8, 12]}>
         <Stat>
